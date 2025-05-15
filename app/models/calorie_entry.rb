@@ -1,0 +1,2 @@
+class CalorieEntry < ApplicationRecord
+end

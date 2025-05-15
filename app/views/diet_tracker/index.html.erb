@@ -1,0 +1,27 @@
+<h1>Welcome to the Diet Tracker!</h1>
+<p><%= image_tag "diet.jpg.webp", width: "300" %>
+
+<%= form_tag do%>
+    <p>Your Meal: <%= text_field_tag(:mealInput) %>
+    <p>Calorie Amount: <%= text_field_tag(:calorieInput) %>
+    <p> <%= submit_tag "Enter Bid"%> </p>
+<% end %>
+
+<table >
+    <thead>
+        <tr>
+            <th> meal </th>
+            <th> calories </th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <% @allCalories.each do |calorie_entry| %>
+            <tr>
+                <td> <%= calorie_entry.meal %> </td>
+                <td> <%= calorie_entry.calories %> </td>
+            </tr>
+        <% end %>
+    </tbody>
+</table>
+
