@@ -1,27 +1,26 @@
+<div style="text-align: center;">
 <h1>Welcome to the Diet Tracker!</h1>
 <p><%= image_tag "diet.jpg.webp", width: "300" %>
 
-<%= form_tag do%>
+<%= form_with url: "/enter_meal", method: :post, local: true, html: { multipart: true } do %>
     <p>Your Meal: <%= text_field_tag(:mealInput) %>
     <p>Calorie Amount: <%= text_field_tag(:calorieInput) %>
-    <p> <%= submit_tag "Enter Bid"%> </p>
+    <p>Image File: <%= file_field_tag(:imageInput) %></p>
+    <p> <%= submit_tag "Enter Meal"%> </p>
 <% end %>
 
-<table >
-    <thead>
-        <tr>
-            <th> meal </th>
-            <th> calories </th>
-        </tr>
-    </thead>
-
-    <tbody>
-        <% @allCalories.each do |calorie_entry| %>
-            <tr>
-                <td> <%= calorie_entry.meal %> </td>
-                <td> <%= calorie_entry.calories %> </td>
-            </tr>
+<div class="grid-container" style="margin: 0 auto; font-size: 12px; text-align: center;">
+    <% @allCalories.each do |calorie_entry| %>
+    <div class="grid-item">
+        <% if calorie_entry.image.present?%>
+            <%= image_tag calorie_entry.image, width: 100%>
+        <% else %>
+            No image
         <% end %>
-    </tbody>
-</table>
-
+        <h3> <%= calorie_entry.meal %></h3>
+        <td> Calories: <%=  calorie_entry.calories %> <td>
+    </div> 
+    <% end %>
+</div>
+<td><strong>Total Calories</strong></td>
+<td><strong><%= @totalCalories %></strong></td>
