@@ -1,26 +1,59 @@
-<div style="text-align: center;">
-<h1>Welcome to the Diet Tracker!</h1>
-<p><%= image_tag "diet.jpg.webp", width: "300" %>
+<div style="text-align: center; padding: 40px;">
+    <h1>Welcome to your Diet Tracker!</h1>
+    <h3> Date: <%= @selected_date.strftime("%A, %B %d, %Y") %> <h3>
+    <p><%= image_tag "diet.jpg.webp", width: "300" %>
+    <p>
+        <%= link_to "Previous", root_path(date: @selected_date - 1.day) %> |
+        <%= link_to "Today", root_path %> |
+        <%= link_to "Next", root_path(date: @selected_date + 1.day) %>
+    </p>
 
-<%= form_with url: "/enter_meal", method: :post, local: true, html: { multipart: true } do %>
-    <p>Your Meal: <%= text_field_tag(:mealInput) %>
-    <p>Calorie Amount: <%= text_field_tag(:calorieInput) %>
-    <p>Image File: <%= file_field_tag(:imageInput) %></p>
-    <p> <%= submit_tag "Enter Meal"%> </p>
-<% end %>
-
-<div class="grid-container" style="margin: 0 auto; font-size: 12px; text-align: center;">
-    <% @allCalories.each do |calorie_entry| %>
-    <div class="grid-item">
-        <% if calorie_entry.image.present?%>
-            <%= image_tag calorie_entry.image, width: 100%>
-        <% else %>
-            No image
+    <%= form_with url: root_path, method: :get, local: true do %>
+        <label for="date">Jump to date:</label>
+        <%= date_field_tag :date, @selected_date, class: "jump-date" %>
+        <%= submit_tag "Go" %>
+    <% end %>
+    
+    <div class="forms">
+        <%= form_with url: "/enter_meal", method: :post, local: true, html: { multipart: true } do %>
+            <p>Your Meal: <%= text_field_tag(:mealInput) %>
+            <p>Calorie Amount: <%= text_field_tag(:calorieInput) %>
+            <p>Image File: <%= file_field_tag(:imageInput) %></p>
+            <p> <%= submit_tag "Enter Meal" %> </p>
         <% end %>
-        <h3> <%= calorie_entry.meal %></h3>
-        <td> Calories: <%=  calorie_entry.calories %> <td>
-    </div> 
+        <%= form_with model: @daily_goal, url: daily_goal_path(date: @selected_date), method: :post, local: true do |form| %>
+            <p>Set Daily Calorie Goal:</p>
+            <%= form.number_field :goal, step: 100, value: @daily_goal.goal || 2000 %>
+            <%= form.submit "Save Goal" %>
+        <% end %>
+    </div>
+    <div class="grid-container" style="margin: 0 auto; font-size: 12px; text-align: center;">
+        <% @calories_today.each do |calorie_entry| %>
+        <div class="grid-item">
+            <% if calorie_entry.image.present?%>
+                <%= image_tag calorie_entry.image, width: 100%>
+            <% else %>
+                No image
+            <% end %>
+            <h3> <%= calorie_entry.meal %></h3>
+            <td> Calories <%=  calorie_entry.calories %> <td>
+            <%= button_to "delete", calorie_entry_path(calorie_entry), method: :delete %>
+        </div> 
+        <% end %>
+    </div>
+    <td><strong>Total Calories</strong></td>
+    <td><strong><%= @totalCalories %></strong></td>
+
+    <% if @daily_goal.goal.present?%>
+        <% diff = @totalCalories - @daily_goal.goal %>
+        <% percent_diff = diff/@daily_goal.goal.to_f * 100%>
+        <% if percent_diff.abs <= 10 %>
+            <p style="color: green;"><strong> You are within 10% of your goal! Great work! </strong><p>
+        <% elsif percent_diff < 0 %> 
+            <p style="color: blue;"> <strong> You are <%= diff.abs %> calories under your goal. </strong></p>
+        <% else %>
+            <p style="color: red;"> <strong> You have exceeded your calorie goal. </strong> </p>
+        <% end %>
     <% end %>
 </div>
-<td><strong>Total Calories</strong></td>
-<td><strong><%= @totalCalories %></strong></td>
+

@@ -1,0 +1,2 @@
+class DailyGoal < ApplicationRecord
+end

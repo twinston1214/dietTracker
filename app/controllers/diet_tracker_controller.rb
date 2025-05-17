@@ -3,10 +3,15 @@ class DietTrackerController < ApplicationController
   def index
     puts "------------------ In Index -----------------------"
     @allCalories = CalorieEntry.all
+    
     puts "# of calories = #{@allCalories.size}"
     # @allCalories = @allCalories.sort_by { |calorie_entry| [-calorie_entry.calories, calorie_entry.meal] }
-
-    @totalCalories = @allCalories.sum(&:calories)
+    
+    @selected_date = params[:date].present? ? Date.parse(params[:date]) : Date.today
+    @calories_today = CalorieEntry.where(eaten_on: @selected_date)
+    @daily_goal = DailyGoal.find_or_initialize_by(date: @selected_date)
+    @daily_goal.goal ||= 2000
+    @totalCalories = @calories_today.sum(&:calories)
   end
 
   def enterMeal
@@ -28,5 +33,23 @@ class DietTrackerController < ApplicationController
         format.html { redirect_to "/" } # can create an error page
       end
     end
+  end
+
+  def delete
+    calorie_entry = CalorieEntry.find(params[:id])
+    calorie_entry.destroy
+    redirect_to root_path(date: calorie_entry.eaten_on)
+  end
+
+  def update_goal
+    date = Date.parse(params[:date])
+    goal = params[:daily_goal][:goal].to_f
+    
+    goal_entry = DailyGoal.find_or_initialize_by(date: date)
+    goal_entry.goal = goal
+    goal_entry.save
+
+    # redirect so user sees updated goal
+    redirect_to root_path(date: date)
   end
 end
