@@ -1,5 +1,9 @@
 class DietTrackerController < ApplicationController
   protect_from_forgery with: :null_session
+
+  # loads all entries for the selected date (or today by default),
+  # retrieves the daily goal, and calculates total calories
+  #
   def index
     puts "------------------ In Index -----------------------"
     @allCalories = CalorieEntry.all
@@ -14,6 +18,9 @@ class DietTrackerController < ApplicationController
     @totalCalories = @calories_today.sum(&:calories)
   end
 
+
+  # POST /enter_meal
+  # Creates a new CalorieEntry for the current date based on submitted form data
   def enterMeal
     puts "---------------- In Enter Meal ----------------------"
     @calorie_entry = CalorieEntry.new(calorie_entry_params)
@@ -37,12 +44,17 @@ class DietTrackerController < ApplicationController
     params.require(:calorie_entry).permit(:meal, :calories, :image, :eaten_on)
   end
 
+  # DELETE /calorie_entries/:id
+  # Deletes a calorie entry and redirects to the same date view
   def delete
     calorie_entry = CalorieEntry.find(params[:id])
     calorie_entry.destroy
     redirect_to root_path(date: calorie_entry.eaten_on)
   end
 
+  # POST /daily_goal
+  # Sets or updates the daily goal for a specific date.
+  #
   def update_goal
     date = Date.parse(params[:date])
     goal = params[:daily_goal][:goal].to_f
