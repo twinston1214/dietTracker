@@ -9,8 +9,6 @@ class DietTrackerController < ApplicationController
     @allCalories = CalorieEntry.all
 
     puts "# of calories = #{@allCalories.size}"
-    # @allCalories = @allCalories.sort_by { |calorie_entry| [-calorie_entry.calories, calorie_entry.meal] }
-
     @selected_date = params[:date].present? ? Date.parse(params[:date]) : Date.today
     @calories_today = CalorieEntry.where(eaten_on: @selected_date)
     @daily_goal = DailyGoal.find_or_initialize_by(date: @selected_date)
@@ -23,26 +21,22 @@ class DietTrackerController < ApplicationController
   # Creates a new CalorieEntry for the current date based on submitted form data
   def enterMeal
     puts "---------------- In Enter Meal ----------------------"
-    @calorie_entry = CalorieEntry.new(calorie_entry_params)
-    @calorie_entry.eaten_on ||= Date.today
-
-    # map = { "meal" => meal, "calories" => calories }
-    # new_entry = CalorieEntry.new(map)
-
-    if @calorie_entry.save
-      redirect_to root_path, notice: "Meal saved sucessfully"
-    else
-      @selected_date = @calorie_entry.eaten_on || Date.today
-      @daily_goal = DailyGoal.find_or_initialize_by(date: @selected_date)
-      @calories_today = CalorieEntry.where(eaten_on: @selected_date)
-      @totalCalories = @calories_today.sum(:calories)
-      render :index
+    meal = params[:mealInput]
+    calories = params[:calorieInput].to_f
+    image = params[:imageInput]
+    eaten_on = params[:eatenOn].present? ? Date.parse(params[:eatenOn]) : Date.today
+    @calorie_entry = CalorieEntry.new(meal: meal, calories: calories, image: image, eaten_on: eaten_on)
+  
+    respond_to do |format|
+      if @calorie_entry.save
+        puts "Success!"
+        format.html { redirect_to root_path(date: @calorie_entry.eaten_on) }
+      else
+        format.html { redirect_to root_path(date: @calorie_entry.eaten_on) } 
+      end
     end
   end
 
-  def calorie_entry_params
-    params.require(:calorie_entry).permit(:meal, :calories, :image, :eaten_on)
-  end
 
   # DELETE /calorie_entries/:id
   # Deletes a calorie entry and redirects to the same date view
@@ -54,7 +48,6 @@ class DietTrackerController < ApplicationController
 
   # POST /daily_goal
   # Sets or updates the daily goal for a specific date.
-  #
   def update_goal
     date = Date.parse(params[:date])
     goal = params[:daily_goal][:goal].to_f

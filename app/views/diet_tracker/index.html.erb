@@ -3,10 +3,11 @@
     <h3> Date: <%= @selected_date.strftime("%A, %B %d, %Y") %> <h3>
     
     <p><%= image_tag "diet.jpg.webp", width: "500" %>
-    <%= form_with model: @daily_goal, url: daily_goal_path(date: @selected_date), method: :post, local: true do |form| %>
+
+    <%= form_tag daily_goal_path(date: @selected_date), method: :post do %>
         <p>Set Daily Calorie Goal:</p>
-        <%= form.number_field :goal, step: 100, value: @daily_goal.goal || 2000 %>
-        <%= form.submit "Save Goal" %>
+        <%= number_field_tag "daily_goal[goal]", @daily_goal.goal || 2000, step: :any%>
+        <%= submit_tag "Save Goal" %>
     <% end %>
     <p>
         <%= link_to "Previous", root_path(date: @selected_date - 1.day) %> |
@@ -14,29 +15,18 @@
         <%= link_to "Next", root_path(date: @selected_date + 1.day) %>
     </p>
 
-    <%= form_with url: root_path, method: :get, local: true do %>
+    <%= form_tag root_path, method: :get do %>
         <label for="date">Jump to date:</label>
         <%= date_field_tag :date, @selected_date, class: "jump-date" %>
         <%= submit_tag "Go" %>
     <%end %>
     <div></div>
-    <%= form_with model: @calorie_entry || CalorieEntry.new, url: enter_meal_path, method: :post, local: true,
-     html: { class: "meal-form", multipart: true, data: {turbo: false} } do |form| %>
-        <p>Your Meal: <%= form.text_field :meal %></p>
-        <p>Calorie Amount: <%= form.number_field :calories, step: 0.1 %></p>
-        <p>Image File: <%= form.file_field :image %></p>
-        <p><%= form.submit "Enter Meal" %></p>
-    <% end %>
-
-    <% if @calorie_entry && @calorie_entry.errors.any? %>
-        <div id="error_explanation" style="color: red; margin-bottom: 20px;">
-            <h2><%= pluralize(@calorie_entry.errors.count, "error") %> prevented this meal from being saved:</h2>
-            <ul>
-                <% @calorie_entry.errors.full_messages.each do |msg| %>
-                    <li><%= msg %></li>
-                <% end %>
-            </ul>
-        </div>
+    <%= form_tag enter_meal_path, method: :post, multipart: true, class: "meal-form" do %>
+        <p>Your Meal: <%= text_field_tag :mealInput, @calorie_entry&.meal, required: true %></p>
+        <p>Calorie Amount: <%= number_field_tag :calorieInput, @calorie_entry&.calories, step: :any, required: true%></p>
+        <p>Image File: <%= file_field_tag :imageInput %></p>
+        <%= hidden_field_tag :eatenOn, @selected_date %>
+        <p><%= submit_tag "Enter Meal" %></p>
     <% end %>
 
 
